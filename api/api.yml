@@ -1,0 +1,127 @@
+openapi: 3.0.1
+info:
+  contact: {}
+  title: user service api
+  version: 1.0.0
+servers:
+  - url: http://localhost:3005
+paths:
+  /v1/address:
+    post:
+      operationId: V1AddressPost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1AddressPost'
+      responses:
+        '204':
+          description: NO CONTENT
+        '400':
+          description: BAD_REQUEST
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400'
+        '500':
+          description: INTERNAL SERVER ERROR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+        - address
+components:
+  schemas:
+    V1AddressPost:
+      type: object
+      properties:
+        id:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        address_note:
+          type: string
+          nullable: true
+      required:
+        - id
+        - address_note
+    FileUploadRequest:
+      type: object
+      properties:
+        checksum_sha256:
+          type: string
+          description: sha256 checksum file
+          x-oapi-codegen-extra-tags:
+            binding: required
+        identifier:
+          type: string
+          description: identifier
+          x-oapi-codegen-extra-tags:
+            binding: required
+        mime_type:
+          type: string
+          description: 'common mime type: https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types'
+          x-oapi-codegen-extra-tags:
+            binding: required
+        original_filename:
+          type: string
+          description: original filename
+          x-oapi-codegen-extra-tags:
+            binding: required
+        size:
+          type: integer
+          format: int64
+          description: sizes in bytes
+          x-oapi-codegen-extra-tags:
+            binding: required
+      required:
+        - checksum_sha256
+        - identifier
+        - mime_type
+        - original_filename
+        - size
+    FileUploadResponse:
+      type: object
+      properties:
+        identifier:
+          type: string
+          description: identifier response from request
+        upload_expired_at:
+          type: string
+          format: date-time
+        upload_url:
+          type: string
+        minio_form_data:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - identifier
+        - upload_expired_at
+        - upload_url
+        - minio_form_data
+    Error400:
+      type: object
+      properties:
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required:
+        - errors
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
