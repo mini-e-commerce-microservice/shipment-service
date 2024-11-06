@@ -13,7 +13,7 @@ type repository struct {
 
 func New(conf *secret_proto.ShipmentServiceBiteshipApi) *repository {
 	c := resty.New()
-	resty_otel.New(c)
+	resty_otel.New(c, resty_otel.WithTraceResponseBody())
 
 	return &repository{
 		client: c,

@@ -9,6 +9,7 @@ import (
 	"github.com/mini-e-commerce-microservice/shipment-service/internal/repositories/biteship_api"
 	"github.com/mini-e-commerce-microservice/shipment-service/internal/repositories/shipping_addresses"
 	"github.com/mini-e-commerce-microservice/shipment-service/internal/services/address"
+	"github.com/mini-e-commerce-microservice/shipment-service/internal/services/courier"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"os/signal"
@@ -22,6 +23,7 @@ var restApi = &cobra.Command{
 		otelConf := conf.LoadOtelConf()
 		appConf := conf.LoadAppConf()
 		jwtConf := conf.LoadJwtConf()
+		sha256Salt := conf.LoadSha256Key()
 
 		closeFnOtel := infra.NewOtel(otelConf, appConf.TracerName)
 		pgdb, pgdbCloseFn := infra.NewPostgresql(appConf.DatabaseDsn)
@@ -39,11 +41,18 @@ var restApi = &cobra.Command{
 			BiteshipApiRepository:     biteshipApiRepository,
 			ShippingAddressRepository: shippingAddressRepository,
 		})
+		courierService := courier.New(courier.Opt{
+			BiteshipApiRepository:     biteshipApiRepository,
+			ShippingAddressRepository: shippingAddressRepository,
+			DBTransaction:             rdbms,
+			Sha256Key:                 sha256Salt,
+		})
 
 		server := presentations.New(&presentations.Presenter{
 			Port:               int(appConf.AppPort),
 			JwtAccessTokenConf: jwtConf.AccessToken,
 			AddressService:     addressService,
+			CourierService:     courierService,
 		})
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()

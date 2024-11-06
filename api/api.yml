@@ -37,8 +37,197 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - address
+  /v1/courier-rates:
+    post:
+      operationId: V1CourierRatesPost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1CourierRatesPostRequestBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1CourierRatesPostResponseBody'
+        '400':
+          description: BAD_REQUEST
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400'
+        '500':
+          description: INTERNAL SERVER ERROR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+        - courier
 components:
   schemas:
+    V1CourierRatesPostRequestBody:
+      type: object
+      properties:
+        product_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/V1CourierRatesPostRequestBodyProductItem'
+          x-oapi-codegen-extra-tags:
+            validate: "required,min=1,dive"
+        origin_address_source_id:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        destination_address_source_id:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+      required:
+        - product_items
+        - destination_address_source_id
+        - origin_address_source_id
+    V1CourierRatesPostRequestBodyProductItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        length:
+          type: integer
+          format: int
+          x-oapi-codegen-extra-tags:
+            validate: "required,min=1"
+        width:
+          type: integer
+          format: int
+          x-oapi-codegen-extra-tags:
+            validate: "required,min=1"
+        height:
+          type: integer
+          format: int
+          x-oapi-codegen-extra-tags:
+            validate: "required,min=1"
+        weight:
+          type: integer
+          format: int
+          x-oapi-codegen-extra-tags:
+            validate: "required,min=1"
+        qty:
+          type: integer
+          format: int
+          x-oapi-codegen-extra-tags:
+            validate: "required,min=1"
+        price:
+          type: number
+          format: double
+          x-oapi-codegen-extra-tags:
+            validate: "required,min=1"
+        name:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+      required:
+        - id
+        - name
+        - qty
+        - weight
+        - price
+        - length
+        - width
+        - height
+    V1CourierRatesPostResponseBody:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/V1CourierRatesPostResponseBodyItem'
+      required:
+        - items
+    V1CourierRatesPostResponseBodyItem:
+      type: object
+      properties:
+        id:
+          type: string
+        available_for_cash_on_delivery:
+          type: boolean
+        available_for_proof_of_delivery:
+          type: boolean
+        available_for_instant_waybill_id:
+          type: boolean
+        available_for_insurance:
+          type: boolean
+        company:
+          type: string
+          example: "jne"
+        courier_name:
+          type: string
+          example: "JNE"
+        courier_code:
+          type: string
+          example: "jne"
+        courier_service_name:
+          type: string
+          example: "Yakin Esok Sampai (YES)"
+        courier_service_code:
+          type: string
+          example: "yes"
+        description:
+          type: string
+          example: "Yakin esok sampai"
+        duration:
+          type: string
+          example: "1 - 1 days"
+        shipment_duration_range:
+          type: string
+          example: "1 - 1"
+        shipment_duration_unit:
+          type: string
+          example: "days"
+        service_type:
+          type: string
+          example: "overnight"
+        shipping_type:
+          type: string
+          example: "parcel"
+        price:
+          type: number
+          format: double
+          example: 54000
+        type:
+          type: string
+          example: "yes"
+      required:
+        - id
+        - type
+        - price
+        - description
+        - courier_service_code
+        - available_for_cash_on_delivery
+        - available_for_insurance
+        - available_for_instant_waybill_id
+        - company
+        - courier_code
+        - courier_name
+        - courier_service_name
+        - courier_service_code
+        - available_for_proof_of_delivery
+        - duration
+        - service_type
+        - shipment_duration_range
+        - shipment_duration_unit
+        - shipping_type
     V1AddressPost:
       type: object
       properties:

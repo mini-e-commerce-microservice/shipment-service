@@ -119,6 +119,22 @@ func LoadKafkaConf() *secret_proto.Kafka {
 	return kafkaConf
 }
 
+func LoadSha256Key() *secret_proto.Sha256Key {
+	kafkaConf := &secret_proto.Sha256Key{}
+	if flag.Lookup("test.v") != nil {
+		err := faker.FakeData(&kafkaConf)
+		if err != nil {
+			panic(err)
+		}
+		return kafkaConf
+	}
+	err := openVaultClient("sha-256-key", "kv", kafkaConf)
+	if err != nil {
+		panic(err)
+	}
+	return kafkaConf
+}
+
 func LoadAppConf() *secret_proto.ShipmentService {
 	appConf := &secret_proto.ShipmentService{}
 	if flag.Lookup("test.v") != nil {

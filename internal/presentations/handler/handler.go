@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/mini-e-commerce-microservice/shipment-service/generated/proto/secret_proto"
 	"github.com/mini-e-commerce-microservice/shipment-service/internal/services/address"
+	"github.com/mini-e-commerce-microservice/shipment-service/internal/services/courier"
 )
 
 type handler struct {
@@ -16,11 +17,13 @@ type handler struct {
 
 type serv struct {
 	addressService address.Service
+	courierService courier.Service
 }
 
 type Opt struct {
 	JwtAccessTokenConf *secret_proto.JwtAccessToken
 	AddressService     address.Service
+	CourierService     courier.Service
 }
 
 func Init(r *chi.Mux, opt Opt) {
@@ -33,6 +36,7 @@ func Init(r *chi.Mux, opt Opt) {
 		),
 		jwtAccessTokenConf: opt.JwtAccessTokenConf,
 		serv: serv{
+			courierService: opt.CourierService,
 			addressService: opt.AddressService,
 		},
 	}
@@ -42,5 +46,9 @@ func Init(r *chi.Mux, opt Opt) {
 func (h *handler) route() {
 	h.r.Post("/v1/address", h.httpOtel.Trace(
 		h.V1AddressPost,
+	))
+
+	h.r.Post("/v1/courier-rates", h.httpOtel.Trace(
+		h.V1CourierRatesPost,
 	))
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/mini-e-commerce-microservice/shipment-service/generated/proto/secret_proto"
 	"github.com/mini-e-commerce-microservice/shipment-service/internal/presentations/handler"
 	"github.com/mini-e-commerce-microservice/shipment-service/internal/services/address"
+	"github.com/mini-e-commerce-microservice/shipment-service/internal/services/courier"
 	"net/http"
 	"time"
 )
@@ -16,6 +17,7 @@ type Presenter struct {
 	Port               int
 	JwtAccessTokenConf *secret_proto.JwtAccessToken
 	AddressService     address.Service
+	CourierService     courier.Service
 }
 
 func New(p *Presenter) *http.Server {
@@ -34,6 +36,7 @@ func New(p *Presenter) *http.Server {
 	handler.Init(r, handler.Opt{
 		JwtAccessTokenConf: p.JwtAccessTokenConf,
 		AddressService:     p.AddressService,
+		CourierService:     p.CourierService,
 	})
 
 	s := &http.Server{

@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package sha_256_payload;
+
+option go_package = "generated/proto/sha_256_payload";
+
+message CourierRate {
+  repeated CourierRateProductItem product_item = 1;
+  bool available_for_cash_on_delivery = 2;
+  bool available_for_proof_of_delivery = 3;
+  bool available_for_instant_waybill_id = 4;
+  bool available_for_insurance = 5;
+  string company = 6;
+  string courier_code = 7;
+  string courier_service_code = 8;
+  string duration = 9;
+  string shipment_duration_range = 10;
+  string shipment_duration_unit = 11;
+  string service_type = 12;
+  float courier_price = 13;
+  string type = 14;
+}
+
+message CourierRateProductItem {
+  int64 length = 1;
+  int64 width = 2;
+  int64 height = 3;
+  int64 weight = 4;
+  int64 quantity = 5;
+  float price = 6;
+  int64 product_id = 7;
+  string name = 8;
+}
