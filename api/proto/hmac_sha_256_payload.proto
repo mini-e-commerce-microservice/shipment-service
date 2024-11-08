@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package sha_256_payload;
+package hmac_sha_256_payload;
 
-option go_package = "generated/proto/sha_256_payload";
+option go_package = "generated/proto/hmac_sha_256_payload";
 
 message CourierRate {
   repeated CourierRateProductItem product_item = 1;
@@ -17,8 +17,18 @@ message CourierRate {
   string shipment_duration_range = 10;
   string shipment_duration_unit = 11;
   string service_type = 12;
-  float courier_price = 13;
+  double courier_price = 13;
   string type = 14;
+  CourierLocation origin = 15;
+  CourierLocation destination = 16;
+}
+
+message CourierLocation {
+  string location_id = 1;
+  double latitude = 2;
+  double longitude = 3;
+  string address = 4;
+  int32 postal_code = 5;
 }
 
 message CourierRateProductItem {
@@ -27,7 +37,7 @@ message CourierRateProductItem {
   int64 height = 3;
   int64 weight = 4;
   int64 quantity = 5;
-  float price = 6;
+  double price = 6;
   int64 product_id = 7;
   string name = 8;
 }

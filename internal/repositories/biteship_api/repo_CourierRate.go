@@ -63,11 +63,21 @@ type CourierRateInputItem struct {
 }
 
 type CourierRateOutput struct {
-	Success bool                    `json:"success"`
-	Object  string                  `json:"object"`
-	Message string                  `json:"message"`
-	Code    int64                   `json:"code"`
-	Items   []CourierRateOutputItem `json:"pricing"`
+	Success     bool                    `json:"success"`
+	Object      string                  `json:"object"`
+	Message     string                  `json:"message"`
+	Code        int64                   `json:"code"`
+	Origin      CourierRateLocation     `json:"origin"`
+	Destination CourierRateLocation     `json:"destination"`
+	Items       []CourierRateOutputItem `json:"pricing"`
+}
+
+type CourierRateLocation struct {
+	LocationID string  `json:"location_id"`
+	Latitude   float64 `json:"latitude"`
+	Longitude  float64 `json:"longitude"`
+	PostalCode int32   `json:"postal_code"`
+	Address    string  `json:"address"`
 }
 
 type CourierRateOutputItem struct {

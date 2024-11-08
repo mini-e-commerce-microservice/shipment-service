@@ -2,18 +2,19 @@ package courier
 
 import (
 	"context"
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"github.com/SyaibanAhmadRamadhan/go-collection"
-	"github.com/mini-e-commerce-microservice/shipment-service/generated/proto/sha_256_payload"
+	"github.com/mini-e-commerce-microservice/shipment-service/generated/proto/hmac_sha_256_payload"
 	"github.com/mini-e-commerce-microservice/shipment-service/internal/repositories/biteship_api"
 	"google.golang.org/protobuf/proto"
 )
 
 func (s *service) CourierRates(ctx context.Context, input CourierRatesInput) (output CourierRatesOutput, err error) {
 	biteshipApiCourierRateItems := make([]biteship_api.CourierRateInputItem, 0, len(input.Items))
-	payloadShaProductItem := make([]*sha_256_payload.CourierRateProductItem, 0, len(input.Items))
+	payloadShaProductItem := make([]*hmac_sha_256_payload.CourierRateProductItem, 0, len(input.Items))
 	for _, item := range input.Items {
 		biteshipApiCourierRateItems = append(biteshipApiCourierRateItems, biteship_api.CourierRateInputItem{
 			Name:     item.Name,
@@ -24,13 +25,13 @@ func (s *service) CourierRates(ctx context.Context, input CourierRatesInput) (ou
 			Height:   item.Height,
 			Quantity: item.Qty,
 		})
-		payloadShaProductItem = append(payloadShaProductItem, &sha_256_payload.CourierRateProductItem{
+		payloadShaProductItem = append(payloadShaProductItem, &hmac_sha_256_payload.CourierRateProductItem{
 			Length:    int64(item.Length),
 			Width:     int64(item.Width),
 			Height:    int64(item.Height),
 			Weight:    int64(item.Weight),
 			Quantity:  int64(item.Qty),
-			Price:     float32(item.Price),
+			Price:     item.Price,
 			ProductId: item.ProductID,
 			Name:      item.Name,
 		})
@@ -39,7 +40,7 @@ func (s *service) CourierRates(ctx context.Context, input CourierRatesInput) (ou
 	outputCourierRate, err := s.biteshipApiRepository.CourierRate(ctx, biteship_api.CourierRateInput{
 		OriginAreaID:      input.OriginAreaSourceID,
 		DestinationAreaID: input.DestinationAreaID,
-		CourierCode:       "paxel,jne,sicepat",
+		CourierCode:       "paxel,jne,sicepat,gojek,grab,rara",
 		Items:             biteshipApiCourierRateItems,
 	})
 	if err != nil {
@@ -57,8 +58,23 @@ func (s *service) CourierRates(ctx context.Context, input CourierRatesInput) (ou
 		Items: make([]CourierRatesOutputItem, 0, len(outputCourierRate.Items)),
 	}
 
+	originLocationPayload := &hmac_sha_256_payload.CourierLocation{
+		LocationId: outputCourierRate.Origin.LocationID,
+		Latitude:   outputCourierRate.Origin.Latitude,
+		Longitude:  outputCourierRate.Origin.Longitude,
+		Address:    outputCourierRate.Origin.Address,
+		PostalCode: outputCourierRate.Origin.PostalCode,
+	}
+	destinationLocationPayload := &hmac_sha_256_payload.CourierLocation{
+		LocationId: outputCourierRate.Destination.LocationID,
+		Latitude:   outputCourierRate.Destination.Latitude,
+		Longitude:  outputCourierRate.Destination.Longitude,
+		Address:    outputCourierRate.Destination.Address,
+		PostalCode: outputCourierRate.Destination.PostalCode,
+	}
+
 	for _, item := range outputCourierRate.Items {
-		payloadSha := &sha_256_payload.CourierRate{
+		payloadSha := &hmac_sha_256_payload.CourierRate{
 			ProductItem:                  payloadShaProductItem,
 			AvailableForCashOnDelivery:   item.AvailableForCOD,
 			AvailableForProofOfDelivery:  item.AvailableForPOD,
@@ -71,21 +87,21 @@ func (s *service) CourierRates(ctx context.Context, input CourierRatesInput) (ou
 			ShipmentDurationRange:        item.ShipmentDurationRange,
 			ShipmentDurationUnit:         item.ShipmentDurationUnit,
 			ServiceType:                  item.ServiceType,
-			CourierPrice:                 float32(item.Price),
+			CourierPrice:                 item.Price,
 			Type:                         item.Type,
+			Destination:                  destinationLocationPayload,
+			Origin:                       originLocationPayload,
 		}
 		payloadShaMarshal, err := proto.Marshal(payloadSha)
 		if err != nil {
 			return output, collection.Err(err)
 		}
 
-		hash := sha256.New()
-		combined := append([]byte(s.sha256Key.ShippmentServiceCourierRate+"|"), payloadShaMarshal...)
-		hash.Write(combined)
-		hashedData := hash.Sum(nil)
+		hash := hmac.New(sha256.New, []byte(s.hmacSha256Key.ShippmentServiceCourierRate))
+		hash.Write(payloadShaMarshal)
 
 		output.Items = append(output.Items, CourierRatesOutputItem{
-			ID:                           hex.EncodeToString(hashedData),
+			ID:                           hex.EncodeToString(hash.Sum(nil)),
 			AvailableForCOD:              item.AvailableForCOD,
 			AvailableForPOD:              item.AvailableForPOD,
 			AvailableForInstantWaybillID: item.AvailableForInstantWaybillID,
@@ -104,6 +120,21 @@ func (s *service) CourierRates(ctx context.Context, input CourierRatesInput) (ou
 			Price:                        item.Price,
 			Type:                         item.Type,
 		})
+	}
+
+	output.Origin = CourierRatesOutputLocation{
+		LocationId: outputCourierRate.Origin.LocationID,
+		Latitude:   outputCourierRate.Origin.Latitude,
+		Longitude:  outputCourierRate.Origin.Longitude,
+		Address:    outputCourierRate.Origin.Address,
+		PostalCode: outputCourierRate.Origin.PostalCode,
+	}
+	output.Destination = CourierRatesOutputLocation{
+		LocationId: outputCourierRate.Destination.LocationID,
+		Latitude:   outputCourierRate.Destination.Latitude,
+		Longitude:  outputCourierRate.Destination.Longitude,
+		Address:    outputCourierRate.Destination.Address,
+		PostalCode: outputCourierRate.Destination.PostalCode,
 	}
 
 	return
@@ -127,7 +158,17 @@ type CourierRatesInputItem struct {
 }
 
 type CourierRatesOutput struct {
-	Items []CourierRatesOutputItem
+	Origin      CourierRatesOutputLocation
+	Destination CourierRatesOutputLocation
+	Items       []CourierRatesOutputItem
+}
+
+type CourierRatesOutputLocation struct {
+	Address    string
+	Latitude   float64
+	LocationId string
+	Longitude  float64
+	PostalCode int32
 }
 
 type CourierRatesOutputItem struct {

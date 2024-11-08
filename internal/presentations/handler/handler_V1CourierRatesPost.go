@@ -13,6 +13,11 @@ func (h *handler) V1CourierRatesPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, ok := h.getUserFromBearerAuth(w, r, false)
+	if !ok {
+		return
+	}
+
 	courierRatesInputItems := make([]courier.CourierRatesInputItem, 0, len(req.ProductItems))
 	for _, item := range req.ProductItems {
 		courierRatesInputItems = append(courierRatesInputItems, courier.CourierRatesInputItem{
@@ -34,7 +39,9 @@ func (h *handler) V1CourierRatesPost(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if errors.Is(err, courier.ErrNoCourierAvailable) {
-			h.httpOtel.WriteJson(w, r, http.StatusOK, "no courier available")
+			h.httpOtel.WriteJson(w, r, http.StatusOK, map[string]string{
+				"message": "no courier available",
+			})
 		} else if errors.Is(err, courier.ErrInvalidAddress) {
 			h.httpOtel.Err(w, r, http.StatusBadRequest, err, "invalid address")
 		} else {
@@ -44,6 +51,20 @@ func (h *handler) V1CourierRatesPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := api.V1CourierRatesPostResponseBody{
+		Destination: api.V1CourierRatesPostResponseBodyLocation{
+			Address:    outputCourierRates.Destination.Address,
+			Latitude:   outputCourierRates.Destination.Latitude,
+			LocationId: outputCourierRates.Destination.LocationId,
+			Longitude:  outputCourierRates.Destination.Longitude,
+			PostalCode: outputCourierRates.Destination.PostalCode,
+		},
+		Origin: api.V1CourierRatesPostResponseBodyLocation{
+			Address:    outputCourierRates.Origin.Address,
+			Latitude:   outputCourierRates.Origin.Latitude,
+			LocationId: outputCourierRates.Origin.LocationId,
+			Longitude:  outputCourierRates.Origin.Longitude,
+			PostalCode: outputCourierRates.Origin.PostalCode,
+		},
 		Items: make([]api.V1CourierRatesPostResponseBodyItem, 0, len(outputCourierRates.Items)),
 	}
 

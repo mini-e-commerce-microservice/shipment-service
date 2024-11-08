@@ -23,7 +23,7 @@ var restApi = &cobra.Command{
 		otelConf := conf.LoadOtelConf()
 		appConf := conf.LoadAppConf()
 		jwtConf := conf.LoadJwtConf()
-		sha256Salt := conf.LoadSha256Key()
+		sha256Salt := conf.LoadHmacSha256Key()
 
 		closeFnOtel := infra.NewOtel(otelConf, appConf.TracerName)
 		pgdb, pgdbCloseFn := infra.NewPostgresql(appConf.DatabaseDsn)
@@ -45,7 +45,7 @@ var restApi = &cobra.Command{
 			BiteshipApiRepository:     biteshipApiRepository,
 			ShippingAddressRepository: shippingAddressRepository,
 			DBTransaction:             rdbms,
-			Sha256Key:                 sha256Salt,
+			HmacSha256Key:             sha256Salt,
 		})
 
 		server := presentations.New(&presentations.Presenter{

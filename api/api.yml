@@ -149,12 +149,40 @@ components:
     V1CourierRatesPostResponseBody:
       type: object
       properties:
+        origin:
+          $ref: '#/components/schemas/V1CourierRatesPostResponseBodyLocation'
+        destination:
+          $ref: '#/components/schemas/V1CourierRatesPostResponseBodyLocation'
         items:
           type: array
           items:
             $ref: '#/components/schemas/V1CourierRatesPostResponseBodyItem'
       required:
         - items
+        - origin
+        - destination
+    V1CourierRatesPostResponseBodyLocation:
+      type: object
+      properties:
+        location_id:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        address:
+          type: string
+        postal_code:
+          type: integer
+          format: int32
+      required:
+        - location_id
+        - latitude
+        - longitude
+        - postal_code
+        - address
     V1CourierRatesPostResponseBodyItem:
       type: object
       properties:

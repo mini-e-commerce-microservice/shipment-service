@@ -119,8 +119,8 @@ func LoadKafkaConf() *secret_proto.Kafka {
 	return kafkaConf
 }
 
-func LoadSha256Key() *secret_proto.Sha256Key {
-	kafkaConf := &secret_proto.Sha256Key{}
+func LoadHmacSha256Key() *secret_proto.HmacSha256Key {
+	kafkaConf := &secret_proto.HmacSha256Key{}
 	if flag.Lookup("test.v") != nil {
 		err := faker.FakeData(&kafkaConf)
 		if err != nil {
@@ -128,7 +128,7 @@ func LoadSha256Key() *secret_proto.Sha256Key {
 		}
 		return kafkaConf
 	}
-	err := openVaultClient("sha-256-key", "kv", kafkaConf)
+	err := openVaultClient("hmac-sha-256-key", "kv", kafkaConf)
 	if err != nil {
 		panic(err)
 	}
